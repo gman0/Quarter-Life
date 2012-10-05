@@ -1,0 +1,15 @@
+Quarter-Life is an FPS game which is a parody to Valve's Half-Life.
+(Don't take it wrong, we love Half-Life.)
+
+Libraries used
+==============
+Ogre3D (http://ogre3d.org/) - rendering engine
+Bullet Physics (http://bulletphysics.org/) - physics simulation and collision engine
+FMOD (http://fmod.org/) - audio library
+CEGUI (http://cegui.org.uk) - GUI library
+Boost (http://boost.org) - various libraries
+
+Made primarily for Linux.
+
+
+Find more info at homepage of Quarter-Life at http://codefreax.org/projects/Quarter-Life.
