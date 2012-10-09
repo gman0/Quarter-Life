@@ -24,7 +24,7 @@
 using namespace QL;
 using namespace CEGUI;
 
-GuiManager::GuiManager(Renderer * renderer) : m_renderer(renderer)
+GuiManager::GuiManager(Renderer * renderer) : m_window(0), m_renderer(renderer)
 {
 	// Instantiate CEGUI's Ogre renderer.
 	m_ceguiRenderer = &OgreRenderer::bootstrapSystem();
@@ -47,4 +47,15 @@ GuiManager::GuiManager(Renderer * renderer) : m_renderer(renderer)
 GuiManager::~GuiManager()
 {
 	OgreRenderer::destroySystem();
+}
+
+Window * GuiManager::setLayout(const char * layoutName)
+{
+	m_window = WindowManager::getSingleton().loadWindowLayout(layoutName);
+	return m_window;
+}
+
+Window * GuiManager::getRootWindow() const
+{
+	return m_window;
 }

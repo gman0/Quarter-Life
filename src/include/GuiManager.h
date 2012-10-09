@@ -33,11 +33,15 @@ class GuiManager
 {
 private:
 	CEGUI::OgreRenderer * m_ceguiRenderer;
+	CEGUI::Window * m_window;
 	Renderer * m_renderer;
 
 public:
 	GuiManager(Renderer * renderer);
 	~GuiManager();
+
+	CEGUI::Window * setLayout(const char * layoutName);
+	CEGUI::Window * getRootWindow() const;
 };
 
 }
