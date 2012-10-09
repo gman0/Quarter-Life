@@ -37,16 +37,23 @@ void GameState::addState(State * st)
 
 void GameState::removeState()
 {
-	assert(m_stateStack.empty() && "Attempt to remove a state from empty m_stateStack");
+	int stackSize = m_stateStack.size();
+
+	assert(stackSize && "Attempt to remove a state from empty m_stateStack");
 
 	State * st = m_stateStack.top();
 	st->exit();
 
 	m_stateStack.pop();
+
+	if (stackSize > 1)
+		m_stateStack.top()->reenter();
 }
 
 bool GameState::frameRenderingQueued(const FrameEvent & evt)
 {
-	m_stateStack.top()->update(evt.timeSinceLastEvent);
+	if (!m_stateStack.empty())
+		m_stateStack.top()->update(evt.timeSinceLastEvent);
+
 	return true;
 }
