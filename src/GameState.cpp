@@ -31,6 +31,9 @@ GameState::GameState(Root * root)
 
 void GameState::addState(State * st)
 {
+	if (!m_stateStack.empty())
+		m_stateStack.top()->exit();
+
 	m_stateStack.push(st);
 	st->enter();
 }
@@ -47,7 +50,7 @@ void GameState::removeState()
 	m_stateStack.pop();
 
 	if (stackSize > 1)
-		m_stateStack.top()->reenter();
+		m_stateStack.top()->enter();
 }
 
 bool GameState::frameRenderingQueued(const FrameEvent & evt)
