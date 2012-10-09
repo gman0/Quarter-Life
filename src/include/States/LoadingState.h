@@ -22,14 +22,31 @@
 #define QL_LOADING_STATE_H
 
 #include "State.h"
+#include "InputCallbackInterface.h"
 
 namespace QL
 {
 
+class GuiManager;
+class InputManager;
+
+class LoadingInputCallback : public InputCallbackInterface
+{};
+
 class LoadingState : public State
 {
+private:
+	GuiManager * m_guiManager;
+	InputManager * m_inputManager;
+	LoadingInputCallback m_inputCallback;
 
+public:
+	LoadingState(GuiManager * guiManager, InputManager * inputManager);
+
+	virtual void enter();
+	virtual void exit();
 };
+
 
 } // namespace QL
 

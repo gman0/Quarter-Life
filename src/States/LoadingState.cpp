@@ -18,3 +18,23 @@
 */
 
 #include "States/LoadingState.h"
+#include "GuiManager.h"
+#include "InputManager.h"
+
+#include <unistd.h>
+
+using namespace QL;
+
+LoadingState::LoadingState(GuiManager * guiManager, InputManager * inputManager) :
+	m_guiManager(guiManager), m_inputManager(inputManager)
+{}
+
+void LoadingState::enter()
+{
+	m_inputManager->registerCallback(&m_inputCallback);
+	m_guiManager->setLayout("loading.layout");
+	// sleep(10);
+}
+
+void LoadingState::exit()
+{}
