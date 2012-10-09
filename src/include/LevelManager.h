@@ -30,6 +30,9 @@
 #include "TriggerManager.h"
 #include "ObjectManager.h"
 #include "SceneLoader.h"
+#include "ResourceManager.h"
+#include "States/LoadingState.h"
+#include "InputManager.h"
 
 namespace QL
 {
@@ -41,21 +44,31 @@ private:
 	SceneLoader * m_sceneLoader;
 	TriggerManager * m_triggerManager;
 	Physics * m_physics;
-	ScriptManager * m_scriptManager;
 	GameState * m_gameState;
 	GuiManager * m_guiManager;
 	CharacterController * m_characterController;
+	ResourceManager * m_resourceManager;
+
+	LoadingState * m_loadingState;
+
+	const char * m_levelName;
 
 public:
-	LevelManager(Physics * physics, ScriptManager * scriptManager, GameState * gameState,
-				GuiManager * guiManager, CharacterController * characterController);
+	LevelManager(ResourceManager * resourceManager, Renderer * renderer, Physics * physics,
+				ScriptManager * scriptManager, GameState * gameState, InputManager * inputManager,
+				GuiManager * guiManager);
 	~LevelManager();
 
 	void loadLevel(const char * levelName, Ogre::SceneManager * sceneManager);
 
+	TriggerManager * getTriggerManager() const;
+	ObjectManager * getObjectManager() const;
+	SceneLoader * getSceneLoader() const;
+	CharacterController * getCharacterController() const;
+
 private:
-	// Remove all objects from the level.
-	void cleanUpLevel();
+	void cleanUpLevel(const char * levelName); // Remove all objects from the level.
+	void initialiseResources(const char * path);
 };
 
 }
