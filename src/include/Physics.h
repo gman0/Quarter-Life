@@ -47,7 +47,7 @@ public:
 	~Physics();
 
 	/*
-	 * This method automatically by defaultadds (addColShape) the collision shape into m_collisionShapes,
+	 * This method automatically by default adds (addColShape) the collision shape into m_collisionShapes,
 	 * therefore it will be deleted in the destructor.
 	 */
 	btRigidBody * addRigidBody(const btTransform & transform, btCollisionShape * shape,
@@ -56,6 +56,7 @@ public:
 	btDiscreteDynamicsWorld * getDynamicsWorld();
 	btBroadphaseInterface * getBroadphase();
 	void addCollisionShape(btCollisionShape * shape);
+	void cleanUpWorld();
 };
 
 

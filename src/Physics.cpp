@@ -6,8 +6,7 @@
     Quarter-Life is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
+    (at your option) any later version.  
     Quarter-Life is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -43,21 +42,7 @@ Physics::Physics()
 
 Physics::~Physics()
 {
-	for (int i = m_dynamicsWorld->getNumCollisionObjects() - 1; i >= 0; i--)
-	{
-		btCollisionObject * obj = m_dynamicsWorld->getCollisionObjectArray()[i];
-		btRigidBody * rb = btRigidBody::upcast(obj);
-
-		if (rb && rb->getMotionState())
-			delete rb->getMotionState();
-
-		m_dynamicsWorld->removeCollisionObject(obj);
-
-		delete obj;
-	}
-
-	for (int i = m_collisionShapes.size() - 1; i >= 0; i--)
-		delete m_collisionShapes[i];
+	cleanUpWorld();
 
 	delete m_ghostPairCallback;
 	delete m_dynamicsWorld;
@@ -104,6 +89,27 @@ btBroadphaseInterface * Physics::getBroadphase()
 void Physics::addCollisionShape(btCollisionShape * shape)
 {
 	m_collisionShapes.push_back(shape);
+}
+
+void Physics::cleanUpWorld()
+{
+	for (int i = m_dynamicsWorld->getNumCollisionObjects() - 1; i >= 0; i--)
+	{
+		btCollisionObject * obj = m_dynamicsWorld->getCollisionObjectArray()[i];
+		btRigidBody * rb = btRigidBody::upcast(obj);
+
+		if (rb && rb->getMotionState())
+			delete rb->getMotionState();
+
+		m_dynamicsWorld->removeCollisionObject(obj);
+
+		delete obj;
+	}
+
+	for (int i = m_collisionShapes.size() - 1; i >= 0; i--)
+		delete m_collisionShapes[i];
+	
+	m_collisionShapes.resize(0);
 }
 
 /// VVV QL::MotionState VVV
