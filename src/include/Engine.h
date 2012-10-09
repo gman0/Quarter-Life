@@ -30,6 +30,9 @@ class Physics;
 class InputManager;
 class CharacterController;
 class GameState;
+class ScriptManager;
+class GuiManager;
+class LevelManager;
 
 
 /*
@@ -46,6 +49,9 @@ private:
 	InputManager * m_inputManager;
 	CharacterController * m_characterController;
 	GameState * m_gameState;
+	ScriptManager * m_scriptManager;
+	GuiManager * m_guiManager;
+	LevelManager * m_levelManager;
 /*	AI * m_ai;
 	GUI * m_gui;
 	Audio * m_audio;
