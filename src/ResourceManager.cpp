@@ -71,3 +71,11 @@ void ResourceManager::readResConfigFile()
 		}
 	}
 }
+
+void ResourceManager::initialiseResourceGroup(const char * groupName, const char * path, const char * type)
+{
+	Ogre::ResourceGroupManager * resManager = Ogre::ResourceGroupManager::getSingletonPtr();
+
+	resManager->addResourceLocation(path, type, groupName);
+	resManager->initialiseResourceGroup(groupName);
+}

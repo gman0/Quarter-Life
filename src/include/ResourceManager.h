@@ -40,6 +40,7 @@ public:
 	~ResourceManager();
 
 	void initialiseResources();
+	void initialiseResourceGroup(const char * groupName, const char * path, const char * type = "FileSystem");
 
 private:
 	void registerResourceTypes();
