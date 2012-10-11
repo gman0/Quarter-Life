@@ -25,7 +25,7 @@ using namespace Ogre;
 
 Script::Script(DataStreamPtr & dataStreamPtr)
 {
-	m_bufSize = dataStreamPtr->size() + 1; // +1 because of \0
+	m_bufSize = dataStreamPtr->size();
 	m_scriptBuffer = new char[m_bufSize];
 
 	dataStreamPtr->read(m_scriptBuffer, m_bufSize);
