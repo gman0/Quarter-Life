@@ -20,22 +20,20 @@ Engine::Engine()
 {
 	m_renderer = new Renderer;
 	m_resourceManager = new ResourceManager("resources.cfg");
-
 	m_resourceManager->initialiseResources();
-
 	m_physics = new Physics;
 	m_inputManager = new InputManager(m_renderer->getRenderWindow());
 	m_gameState = new GameState(m_renderer->getRoot());
-	m_guiManager = new GuiManager(m_renderer);
 	m_scriptManager = new ScriptManager;
+	m_guiManager = new GuiManager(m_renderer);
 	m_levelManager = new LevelManager(m_resourceManager, m_renderer, m_physics, m_scriptManager, m_gameState,
 										m_inputManager, m_guiManager);
 }
 
 Engine::~Engine()
 {
-	delete m_guiManager;
 	delete m_levelManager;
+	delete m_guiManager;
 	delete m_scriptManager;
 	delete m_gameState;
 	delete m_inputManager;
@@ -46,9 +44,17 @@ Engine::~Engine()
 
 void Engine::run()
 {
-	m_renderer->init(m_inputManager, m_physics, m_levelManager->getCharacterController());
-	PlayState ps(m_inputManager, m_levelManager->getCharacterController()->getCharacterInput(), m_renderer);
-	m_gameState->addState(&ps);
+	CharacterController * characterController = m_levelManager->getCharacterController();
+
+	m_renderer->init(m_inputManager, m_physics, characterController);
+
+	/** TEST */
 	m_levelManager->loadLevel("TestLevel", m_renderer->getSceneManager());
+	PlayState * ps = new PlayState(m_inputManager, characterController->getCharacterInput(), m_renderer);
+	m_gameState->addState(ps);
+	/** TEST */
+
 	m_renderer->startRendering();
+
+	delete ps;
 }
