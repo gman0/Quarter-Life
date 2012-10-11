@@ -75,8 +75,10 @@ void LevelManager::loadLevel(const char * levelName, SceneManager * sceneManager
 
 	path objects = base / "objects";
 
-	m_resourceManager->initialiseResourceGroup(levelName, base.c_str());
-	m_resourceManager->initialiseResourceGroup(levelName, objects.c_str(), "ObjFileSystem");
+	Ogre::ResourceGroupManager * resManager = Ogre::ResourceGroupManager::getSingletonPtr();
+	resManager->addResourceLocation(base.c_str(), "FileSystem", levelName);
+	resManager->addResourceLocation(objects.c_str(), "ObjFileSystem", levelName);
+	resManager->initialiseResourceGroup(levelName);
 
 	String sceneName = levelName;
 	sceneName += ".scene";
