@@ -193,6 +193,14 @@ btPairCachingGhostObject * CharacterPhysics::getGhostObject()
 
 bool CharacterPhysics::recoverFromPenetration(btCollisionWorld * collisionWorld)
 {
+	btVector3 minAabb, maxAabb;
+
+	m_colShape->getAabb(m_ghostObject->getWorldTransform(), minAabb,maxAabb);
+	collisionWorld->getBroadphase()->setAabb(m_ghostObject->getBroadphaseHandle(), 
+						 minAabb, 
+						 maxAabb, 
+						 collisionWorld->getDispatcher());
+
 	bool penetration = false;
 
 	collisionWorld->getDispatcher()->dispatchAllCollisionPairs(
