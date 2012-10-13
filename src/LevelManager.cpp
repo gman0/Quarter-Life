@@ -74,10 +74,14 @@ void LevelManager::loadLevel(const char * levelName, SceneManager * sceneManager
 	base /= levelName;
 
 	path objects = base / "objects";
+	path materials = base / "materials";
 
 	Ogre::ResourceGroupManager * resManager = Ogre::ResourceGroupManager::getSingletonPtr();
-	resManager->addResourceLocation(base.c_str(), "FileSystem", levelName);
-	resManager->addResourceLocation(objects.c_str(), "ObjFileSystem", levelName);
+	resManager->addResourceLocation(base.c_str(), "FileSystem", levelName); // .scene file
+	resManager->addResourceLocation(objects.c_str(), "ObjFileSystem", levelName); // .obj files
+	resManager->addResourceLocation((materials / "textures").c_str(), "FileSystem", levelName); // for textures
+	resManager->addResourceLocation((materials / "programs").c_str(), "FileSystem", levelName); // for .cg/.glsl files
+	resManager->addResourceLocation((materials / "scripts").c_str(), "FileSystem", levelName); // for .material files
 	resManager->initialiseResourceGroup(levelName);
 
 	String sceneName = levelName;
@@ -86,7 +90,7 @@ void LevelManager::loadLevel(const char * levelName, SceneManager * sceneManager
 	m_sceneLoader->parseScene(sceneManager, sceneName, levelName);
 
 	// Warp the character to the starting position.
-	// m_characterController->getCharacterPhysics()->warp(convert(m_sceneLoader->getStart()));
+	m_characterController->getCharacterPhysics()->warp(convert(m_sceneLoader->getStart()));
 
 	// m_gameState->removeState();
 
