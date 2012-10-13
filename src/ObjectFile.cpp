@@ -21,6 +21,7 @@
 #include <OGRE/OgreLogManager.h>
 #include <OGRE/OgreArchiveManager.h>
 #include <OGRE/OgreArchive.h>
+#include <OGRE/OgreZip.h>
 #include <OGRE/OgreFileSystem.h>
 #include <iostream>
 #include "ObjectFile.h"
@@ -69,7 +70,7 @@ void ObjectFile::loadImpl()
 
 void ObjectFile::unloadImpl()
 {
-	ArchiveManager::getSingleton().unload(m_name);
+	static_cast<ZipArchive*>(m_archive)->unload();
 }
 
 size_t ObjectFile::calculateSize() const
