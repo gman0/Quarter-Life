@@ -99,6 +99,11 @@ static btVector3 getNormalizedVector(const btVector3 & vec)
 	return n;
 }
 
+inline void debugvec(const btVector3 & vec)
+{
+	printf("%f, %f, %f\n", vec[0], vec[1], vec[2]);
+}
+
 const btVector3 s_upAxisDirection[3] = {
 	btVector3(1, 0, 0),
 	btVector3(0, 1, 0),
@@ -139,10 +144,10 @@ CharacterPhysics::CharacterPhysics(Physics * physics)
 	btScalar characterWidth = 1.75;
 	btScalar characterHeight = 2.75;
 	m_shapes[0] = new btCapsuleShape(characterWidth, characterHeight);
-	m_shapes[1] = new btCapsuleShape(characterWidth, characterWidth / 2.5);
+	m_shapes[1] = new btCapsuleShape(characterWidth, characterHeight / 2.5);
 	m_colShape = m_shapes[0];
-	m_standingHeight = (m_colShape->getHalfHeight() + m_colShape->getRadius()) * 2;
-	m_crouchingHeight = (m_shapes[1]->getHalfHeight() + m_shapes[1]->getRadius()) * 2;
+	m_standHeight = (m_colShape->getHalfHeight() + m_colShape->getRadius()) * 2;
+	m_crouchHeight = (m_shapes[1]->getHalfHeight() + m_shapes[1]->getRadius()) * 2;
 
 
 	m_ghostObject->setCollisionShape(m_shapes[0]);
@@ -242,8 +247,8 @@ bool CharacterPhysics::recoverFromPenetration(btCollisionWorld * collisionWorld)
 
 				btScalar dist = pt.getDistance();
 
-				// if (dist < 0.0)
-				if (fabs(dist) > m_addedMargin)
+				// if (dist < btScalar(0.0))
+				if (fabs(dist) > 0.2 /* m_addedMargin */)
 				{
 					if (dist < maxPenetration)
 					{
@@ -331,6 +336,9 @@ void CharacterPhysics::updateTargetPositionBasedOnCollision(const btVector3 & hi
 		if (normalMag)
 		{
 			btVector3 perpComponent = perpendicularDir * btScalar(normalMag * movementLength);
+			// printf("perpComponent: "); debugvec(perpComponent);
+			perpComponent.setY(0);
+
 			m_targetPosition += perpComponent;
 		}
 	}
@@ -338,65 +346,46 @@ void CharacterPhysics::updateTargetPositionBasedOnCollision(const btVector3 & hi
 
 void CharacterPhysics::stepForwardAndStrafe(btCollisionWorld * collisionWorld, const btVector3 & walkMove)
 {
-	btTransform start, end;
+	if (walkMove.isZero())
+		return;
+
 	m_targetPosition = m_currentPosition + walkMove;
 
-	start.setIdentity();
-	end.setIdentity();
-
-	btScalar fraction = 1.0;
-	btScalar distance2 = (m_currentPosition - m_targetPosition).length2();
-
-	if (m_touchingContact)
+	// Check for any contacts and run updateTargetPositionBasedOnCollision if any
+	int overlappingPairs = m_ghostObject->getOverlappingPairCache()->getNumOverlappingPairs();
+	for (int i = 0; i < overlappingPairs; i++)
 	{
-		if (m_normalizedDirection.dot(m_touchingNormal) > 0.0)
-			updateTargetPositionBasedOnCollision(m_touchingNormal);
-	}
+		m_manifoldArray.resize(0);
 
-	btScalar margin = m_colShape->getMargin();
+		btBroadphasePair * collisionPair =
+			&m_ghostObject->getOverlappingPairCache()->getOverlappingPairArray()[i];
 
-	int maxIter = 10;
+		if (collisionPair->m_algorithm)
+			collisionPair->m_algorithm->getAllContactManifolds(m_manifoldArray);
 
-	while (fraction > btScalar(0.01) && maxIter-- > 0)
-	{
-		start.setOrigin(m_currentPosition);
-		end.setOrigin(m_targetPosition);
-
-		btVector3 sweepDirNegative(m_currentPosition - m_targetPosition);
-
-		KinematicClosestNotMeConvexResultCallback callback(m_ghostObject, sweepDirNegative, 0.0);
-		callback.m_collisionFilterGroup = m_ghostObject->getBroadphaseHandle()->m_collisionFilterGroup;
-		callback.m_collisionFilterMask = m_ghostObject->getBroadphaseHandle()->m_collisionFilterMask;
-
-		m_colShape->setMargin(margin + m_addedMargin);
-
-		m_ghostObject->convexSweepTest(m_colShape, start, end, callback,
-			collisionWorld->getDispatchInfo().m_allowedCcdPenetration);
-
-		m_colShape->setMargin(margin);
-
-		fraction -= callback.m_closestHitFraction;
-
-		if (callback.hasHit())
+		int manifoldArraySize = m_manifoldArray.size();
+		for (int j = 0; j < manifoldArraySize; j++)
 		{
-			updateTargetPositionBasedOnCollision(callback.m_hitNormalWorld);
-			btVector3 currentDir = m_targetPosition - m_currentPosition;
-			distance2 = currentDir.length2();
+			btPersistentManifold * manifold = m_manifoldArray[j];
+			btScalar directionSign = (manifold->getBody0() == m_ghostObject) ? -1.0 : 1.0;
 
-			if (distance2 > SIMD_EPSILON)
+			int numContacts = manifold->getNumContacts();
+			for (int k = 0; k < numContacts; k++)
 			{
-				currentDir.normalize();
+				const btManifoldPoint & pt = manifold->getContactPoint(k);
 
-				/* See Quake2: "If velocity is against original velocity, stop ead to avoid tiny
-				 * oscilations in sloping corners." */
-				if (currentDir.dot(m_normalizedDirection) <= 0.0)
-					break;
+				btScalar dist = pt.getDistance();
+
+				if (dist < 0)
+				{
+					btVector3 hitNormal = pt.m_normalWorldOnB * directionSign;
+
+					// Determine if our desired walk direction is facing the hit normal.
+					if (hitNormal.dot(walkMove.normalized()) >= 0)
+						updateTargetPositionBasedOnCollision(hitNormal);
+				}
 			}
-			else
-				break;
 		}
-		else
-			m_currentPosition = m_targetPosition; // we moved whole way
 	}
 }
 
@@ -535,6 +524,7 @@ void CharacterPhysics::setMaxJumpHeight(btScalar maxJumpHeight)
 
 bool CharacterPhysics::canJump() const
 {
+	// TODO: check if we have enough space above us
 	return onGround();
 }
 
@@ -549,11 +539,12 @@ void CharacterPhysics::jump()
 
 void CharacterPhysics::crouch()
 {
+	// FIXME: penetrating ground while crouching
 	m_ghostObject->setCollisionShape(m_shapes[1]); // Change the collision shape to crouching.
 	m_colShape = m_shapes[1];
 
 	// Move the character lower so we don't start falling.
-	m_currentPosition.setY(m_currentPosition.y() - m_standingHeight + m_crouchingHeight);
+	// m_currentPosition.setY(m_currentPosition.y() - m_standHeight + m_crouchHeight);
 }
 
 void CharacterPhysics::crouchEnd()
@@ -607,7 +598,7 @@ void CharacterPhysics::stand(btCollisionWorld * collisionWorld)
 	m_colShape = m_shapes[0];
 
 	// Move character up to avoid interpenetration.
-	// m_currentPosition.setY(m_currentPosition.y() - m_crouchingHeight + m_standingHeight);
+	// m_currentPosition.setY(m_currentPosition.y() - m_crouchHeight + m_standHeight);
 
 	m_wantStand = false;
 }
