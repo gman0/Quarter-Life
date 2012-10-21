@@ -49,7 +49,7 @@ void Engine::run()
 	m_renderer->init(m_inputManager, m_physics, characterController);
 
 	/** TEST */
-	m_levelManager->loadLevel("TestLevel", m_renderer->getSceneManager());
+	m_levelManager->loadLevel("railstation", m_renderer->getSceneManager());
 	PlayState * ps = new PlayState(m_inputManager, characterController->getCharacterInput(), m_renderer);
 	m_gameState->addState(ps);
 	/** TEST */
