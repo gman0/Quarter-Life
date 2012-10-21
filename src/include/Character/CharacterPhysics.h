@@ -46,8 +46,8 @@ private:
 	btCapsuleShape * m_colShape; // Current shape.
 
 	// So we don't have to calulate these each time.
-	btScalar m_standingHeight;
-	btScalar m_crouchingHeight;
+	btScalar m_standHeight;
+	btScalar m_crouchHeight;
 
 	int m_upAxis;
 
