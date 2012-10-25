@@ -141,13 +141,13 @@ CharacterPhysics::CharacterPhysics(Physics * physics)
 
 	m_ghostObject = new btPairCachingGhostObject();
 	m_ghostObject->setWorldTransform(startTransform);
-	btScalar characterWidth = 1.75;
+	btScalar characterRadius = 1.75;
 	btScalar characterHeight = 2.75;
-	m_shapes[0] = new btCapsuleShape(characterWidth, characterHeight);
-	m_shapes[1] = new btCapsuleShape(characterWidth, characterHeight / 2.5);
+	m_shapes[0] = new btCapsuleShape(characterRadius, characterHeight);
+	m_shapes[1] = new btCapsuleShape(characterRadius, characterHeight / 2.5);
 	m_colShape = m_shapes[0];
-	m_standHeight = (m_colShape->getHalfHeight() + m_colShape->getRadius()) * 2;
-	m_crouchHeight = (m_shapes[1]->getHalfHeight() + m_shapes[1]->getRadius()) * 2;
+	m_standHeight = characterHeight + 2 * characterRadius;
+	m_crouchHeight = characterHeight / 2.5 + 2 * characterRadius;
 
 
 	m_ghostObject->setCollisionShape(m_shapes[0]);
@@ -170,6 +170,7 @@ CharacterPhysics::~CharacterPhysics()
 	delete m_shapes[1];
 	delete m_shapes[0];
 
+	m_physics->getDynamicsWorld()->removeAction(this);
 	m_physics->getDynamicsWorld()->removeCollisionObject(m_ghostObject);
 
 	delete m_ghostObject;
@@ -539,12 +540,16 @@ void CharacterPhysics::jump()
 
 void CharacterPhysics::crouch()
 {
-	// FIXME: penetrating ground while crouching
 	m_ghostObject->setCollisionShape(m_shapes[1]); // Change the collision shape to crouching.
 	m_colShape = m_shapes[1];
 
-	// Move the character lower so we don't start falling.
-	// m_currentPosition.setY(m_currentPosition.y() - m_standHeight + m_crouchHeight);
+	// FIXME: There's a temporar jitter right after performing a crouch while walking
+	// but it doesn't occur if standing (crouching) still so the problem might be
+	// related to that.
+
+	// Move the character up to avoid penetration.
+	btTransform & transform = m_ghostObject->getWorldTransform();
+	transform.setOrigin(transform.getOrigin() + btVector3(0, m_colShape->getHalfHeight(), 0));
 }
 
 void CharacterPhysics::crouchEnd()
@@ -565,11 +570,8 @@ bool CharacterPhysics::canStand(btCollisionWorld * collisionWorld) const
 		start.setIdentity();
 		end.setIdentity();
 
-		btScalar standHeight = (standingColShape->getHalfHeight() + standingColShape->getRadius()) * 2;
-		btScalar crouchHeight = (m_shapes[1]->getHalfHeight() + m_shapes[1]->getRadius()) * 2;
-
 		btVector3 endOrigin(m_currentPosition);
-		endOrigin.setY(endOrigin.y() - crouchHeight + standHeight);
+		endOrigin.setY(endOrigin.y() - m_crouchHeight + m_standHeight);
 
 		start.setOrigin(m_currentPosition);
 		end.setOrigin(endOrigin);
@@ -598,7 +600,9 @@ void CharacterPhysics::stand(btCollisionWorld * collisionWorld)
 	m_colShape = m_shapes[0];
 
 	// Move character up to avoid interpenetration.
-	// m_currentPosition.setY(m_currentPosition.y() - m_crouchHeight + m_standHeight);
+	// btTransform & transform = m_ghostObject->getWorldTransform();
+	// transform.setOrigin(transform.getOrigin() + btVector3(0, btScalar(2.0) * m_colShape->getHalfHeight(), 0));
+
 
 	m_wantStand = false;
 }
