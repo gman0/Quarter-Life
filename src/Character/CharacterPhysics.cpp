@@ -547,9 +547,12 @@ void CharacterPhysics::crouch()
 	// but it doesn't occur if standing (crouching) still so the problem might be
 	// related to that.
 
-	// Move the character up to avoid penetration.
-	btTransform & transform = m_ghostObject->getWorldTransform();
-	transform.setOrigin(transform.getOrigin() + btVector3(0, m_colShape->getHalfHeight(), 0));
+	// Move the character up to avoid penetration but only if we're on the ground.
+	if (onGround())
+	{
+		btTransform & transform = m_ghostObject->getWorldTransform();
+		transform.setOrigin(transform.getOrigin() + btVector3(0, m_colShape->getHalfHeight(), 0));
+	}
 }
 
 void CharacterPhysics::crouchEnd()
